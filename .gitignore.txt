@@ -50,3 +50,4 @@ coverage.xml
 # Local settings
 *.env
 .env.*
+.env
