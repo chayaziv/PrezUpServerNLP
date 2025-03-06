@@ -1,11 +1,15 @@
 import base64
-import os
 from google import genai
 from google.genai import types
 
 from flask import Flask, request, jsonify
 import os
 from flask_cors import CORS  
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+gemini_api_key = os.getenv('GEMINI_API_KEY')
 
 prompt = """
 
@@ -63,7 +67,7 @@ def encode_file_to_base64(file_path):
         return base64.b64encode(file.read()).decode("utf-8")
 
 def analyze_presentation(audio_file_path):
-    client = genai.Client(api_key="AIzaSyCi7Npo0QSJa2FywL8CcC3hj5s18QWfDXc")
+    client = genai.Client(api_key=gemini_api_key)
     model = "gemini-2.0-flash"
     encoded_audio = encode_file_to_base64(audio_file_path)
 
