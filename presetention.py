@@ -13,7 +13,7 @@ gemini_api_key = os.getenv('GEMINI_API_KEY')
 
 prompt = """
 
-
+נתח את קובץ ה-WAV המצורף, המכיל הקלטה של פרזנטציה. ספק משוב מפורט בצורת JSON בלבד, 
 נתח את קובץ ה WAV המכיל הקלטה של פרנזטציה
 ספק משוב מפורט בצורת JSON .בלבד ללא כל טקסט נוסף
 
@@ -56,9 +56,10 @@ prompt = """
 
  כולל ציון מספרי ונימוק לכל מדד, וכן טיפים מפורטים לשיפור 
  הטיפים יהיו פסקה אחת באורך של 4 עד 6 שורות
- הקפד למלא את כל השדות ב-JSON
-תן מחמאות חיוביות במדד 8 ומעלה
+ הטיפים יכללו טיפ של : "במקום לאמר כך... תגיד כך... "
+ קפד למלא את כל השדות ב-JSON וליהות חיובי במדד 8 ומעלה
  תענה הכול בשפת העברית בלבד
+ אם אין לך אפשרות להגיב כנדרש מכל סיבה שהיא תחזיר את כל המדדים 0 
  """
 
 
@@ -68,7 +69,7 @@ def encode_file_to_base64(file_path):
         return base64.b64encode(file.read()).decode("utf-8")
 
 def analyze_presentation(audio_file_path):
-    client = genai.Client(api_key=gemini_api_key)
+    client = genai.Client(api_key="AIzaSyCi7Npo0QSJa2FywL8CcC3hj5s18QWfDXc")
     model = "gemini-2.0-flash"
     encoded_audio = encode_file_to_base64(audio_file_path)
 
@@ -100,7 +101,7 @@ def analyze_presentation(audio_file_path):
         model=model, contents=contents, config=generate_content_config
     ):
         response_text += chunk.text
-       
+        print(chunk.text)
 
     return response_text
 
@@ -123,7 +124,7 @@ def analyze_audio():
         return jsonify({"error": str(e)}), 500
     finally:
         os.remove(temp_path)
-    return {"response":analysis_result}
+    return analysis_result
 
 if __name__ == '__main__':
    app.run(host='0.0.0.0', port=5000)
