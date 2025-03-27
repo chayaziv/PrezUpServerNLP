@@ -111,23 +111,56 @@ def analyze_presentation(audio_file_path):
 
 app = Flask(__name__)
 CORS(app) 
+import requests
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
 
 @app.route("/analyze-audio", methods=["POST"])
 def analyze_audio():
-    if "audio" not in request.files:
-        return jsonify({"error": "No audio file provided"}), 400
+    data = request.get_json()
+    file_url = data.get("audioUrl")
     
-    audio_file = request.files["audio"]
+    if not file_url:
+        return jsonify({"error": "No audio URL provided"}), 400
+    
     temp_path = "temp_audio.wav"
-    audio_file.save(temp_path)
     
     try:
+        # הורדת הקובץ מ-S3
+        response = requests.get(file_url)
+        if response.status_code != 200:
+            return jsonify({"error": "Failed to download audio file"}), 500
+        
+        with open(temp_path, "wb") as audio_file:
+            audio_file.write(response.content)
+        
+        # ניתוח האודיו
         analysis_result = analyze_presentation(temp_path)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
-        os.remove(temp_path)
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+    
     return analysis_result
+
+# @app.route("/analyze-audio", methods=["POST"])
+# def analyze_audio():
+#     if "audio" not in request.files:
+#         return jsonify({"error": "No audio file provided"}), 400
+    
+#     audio_file = request.files["audio"]
+#     temp_path = "temp_audio.wav"
+#     audio_file.save(temp_path)
+    
+#     try:
+#         analysis_result = analyze_presentation(temp_path)
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+#     finally:
+#         os.remove(temp_path)
+#     return analysis_result
 
 if __name__ == '__main__':
    app.run(host='0.0.0.0', port=5000)
