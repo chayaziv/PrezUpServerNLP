@@ -118,6 +118,7 @@ app = Flask(__name__)
 
 @app.route("/analyze-audio", methods=["POST"])
 def analyze_audio():
+    print("---------------------analyze_audio---------------------")
     data = request.get_json()
     file_url = data.get("audioUrl")
     
