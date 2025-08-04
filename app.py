@@ -11,59 +11,20 @@ import os
 load_dotenv()
 gemini_api_key = os.getenv('GEMINI_API_KEY')
 
-prompt = """
+def load_prompt_from_file():
+    """טוען את הפרומפט מקובץ prompt.md"""
+    try:
+        with open('prompt.md', 'r', encoding='utf-8') as file:
+            return file.read()
+    except FileNotFoundError:
+        print("Warning: prompt.md file not found. Using default prompt.")
+        return """
+        נתח את קובץ ה-WAV המצורף, המכיל הסרטה של פרזנטציה. 
+        ספק משוב מפורט בצורת JSON בלבד ללא כל טקסט נוסף.
+        """
 
-נתח את קובץ ה-WAV
- המצורף, 
- המכיל הסרטה של פרזנטציה.
-   ספק משוב מפורט בצורת 
-   JSON 
- .בלבד ללא כל טקסט נוסף
-
-המשוב צריך להתמקד בחמישה מדדים עיקריים .
-1. בהירות (clarity) – עד כמה הרעיונות מובנים וברורים?
-2.  שטף דיבור (fluency)  – האם הדובר מדבר באופן טבעי וללא היסוסים?
-3.  ביטחון (confidence)  – האם הדובר משדר ביטחון?
-4.  מעורבות (engagement)  – עד כמה הפרזנטציה מעניינת ומושכת?
-5.  סגנון דיבור (speech style)  – איך הדובר משתמש בשפה? האם היא טבעית ומכובדת?
-והסבר מפורט על הסיבות לציון זה
-
-בנוסף, ספק טיפים לשיפור הפרזנטציה. הטיפים צריכים להיות ספציפיים ומעשיים, ולכלול גם משוב חיובי על נקודות החוזק של המציג.
-
-הפלט צריך להיות בפורמט JSON הבא בדיוק:
-{
-    "scores": {
-        "clarity": {
-            "score": "",
-            "reason": ""
-        },
-        "fluency": {
-            "score": "",
-            "reason": ""
-        },
-        "confidence": {
-            "score": "",
-            "reason": ""
-        },
-        "engagement": {
-            "score": "",
-            "reason": ""
-        },
-        "speech_style": {
-            "score": "",
-            "reason": ""
-        }
-    },
-    "tips": ""
-}
-
- כולל ציון מספרי ונימוק לכל מדד, וכן טיפים מפורטים לשיפור 
- הטיפים יהיו פסקה אחת באורך של 4 עד 6 שורות
- הטיפים יכללו טיפ של : "במקום לאמר כך... תגיד כך... "
- קפד למלא את כל השדות ב-JSON וליהות חיובי במדד 8 ומעלה
- תענה הכול בשפת העברית בלבד
- אם אין לך אפשרות להגיב כנדרש מכל סיבה שהיא תחזיר את כל המדדים 0 
- """
+# טעינת הפרומפט מהקובץ
+prompt = load_prompt_from_file()
 
 
 def encode_file_to_base64(file_path):
@@ -72,7 +33,7 @@ def encode_file_to_base64(file_path):
         return base64.b64encode(file.read()).decode("utf-8")
 
 def analyze_presentation(audio_file_path):
-    client = genai.Client(api_key="AIzaSyCi7Npo0QSJa2FywL8CcC3hj5s18QWfDXc")
+    client = genai.Client(api_key=gemini_api_key)
     model = "gemini-2.0-flash"
     encoded_audio = encode_file_to_base64(audio_file_path)
 
@@ -146,22 +107,6 @@ def analyze_audio():
     
     return analysis_result
 
-# @app.route("/analyze-audio", methods=["POST"])
-# def analyze_audio():
-#     if "audio" not in request.files:
-#         return jsonify({"error": "No audio file provided"}), 400
-    
-#     audio_file = request.files["audio"]
-#     temp_path = "temp_audio.wav"
-#     audio_file.save(temp_path)
-    
-#     try:
-#         analysis_result = analyze_presentation(temp_path)
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
-#     finally:
-#         os.remove(temp_path)
-#     return analysis_result
 
 if __name__ == '__main__':
    app.run(host='0.0.0.0', port=5000)
