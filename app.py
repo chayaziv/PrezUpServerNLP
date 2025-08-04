@@ -2,7 +2,7 @@ import base64
 from google import genai
 from google.genai import types
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify 
 import os
 from flask_cors import CORS  
 from dotenv import load_dotenv
@@ -19,7 +19,7 @@ def load_prompt_from_file():
     except FileNotFoundError:
         print("Warning: prompt.md file not found. Using default prompt.")
         return """
-        נתח את קובץ ה-WAV המצורף, המכיל הסרטה של פרזנטציה. 
+        נתח את קובץ הווידאו המצורף, המכיל הסרטה של פרזנטציה. 
         ספק משוב מפורט בצורת JSON בלבד ללא כל טקסט נוסף.
         """
 
@@ -32,10 +32,10 @@ def encode_file_to_base64(file_path):
     with open(file_path, "rb") as file:
         return base64.b64encode(file.read()).decode("utf-8")
 
-def analyze_presentation(audio_file_path):
+def analyze_presentation(video_file_path):
     client = genai.Client(api_key=gemini_api_key)
     model = "gemini-2.0-flash"
-    encoded_audio = encode_file_to_base64(audio_file_path)
+    encoded_video = encode_file_to_base64(video_file_path)
 
     contents = [
         types.Content(
@@ -44,8 +44,8 @@ def analyze_presentation(audio_file_path):
                 types.Part(text=prompt),
                 types.Part(
                     inline_data=types.Blob(
-                        mime_type="audio/wav",
-                        data=encoded_audio,
+                        mime_type="video/mp4",
+                        data=encoded_video,
                     )
                 ),
             ],
@@ -73,31 +73,31 @@ def analyze_presentation(audio_file_path):
 app = Flask(__name__)
 CORS(app) 
 import requests
-from flask import Flask, request, jsonify
+
 
 app = Flask(__name__)
 
-@app.route("/analyze-audio", methods=["POST"])
-def analyze_audio():
-    print("---------------------analyze_audio---------------------")
+@app.route("/analyze-video", methods=["POST"])
+def analyze_video():
+    print("---------------------analyze_video---------------------")
     data = request.get_json()
-    file_url = data.get("audioUrl")
+    file_url = data.get("videoUrl")
     
     if not file_url:
-        return jsonify({"error": "No audio URL provided"}), 400
+        return jsonify({"error": "No video URL provided"}), 400
     
-    temp_path = "temp_audio.wav"
+    temp_path = "temp_video.mp4"
     
     try:
         # הורדת הקובץ מ-S3
         response = requests.get(file_url)
         if response.status_code != 200:
-            return jsonify({"error": "Failed to download audio file"}), 500
+            return jsonify({"error": "Failed to download video file"}), 500
         
-        with open(temp_path, "wb") as audio_file:
-            audio_file.write(response.content)
+        with open(temp_path, "wb") as video_file:
+            video_file.write(response.content)
         
-        # ניתוח האודיו
+        # ניתוח הווידאו
         analysis_result = analyze_presentation(temp_path)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
